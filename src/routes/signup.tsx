@@ -100,10 +100,12 @@ function SignupPage() {
     setStep((s) => s + 1);
   };
 
+  const current = STEPS[step] ?? STEPS[0]!;
+
   return (
     <AuthShell
-      title={STEPS[step].title}
-      subtitle={STEPS[step].hint}
+      title={current.title}
+      subtitle={current.hint}
       footer={
         <span>
           มีบัญชีอยู่แล้ว?{" "}

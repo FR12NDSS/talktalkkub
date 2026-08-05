@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
 
   return (
     <AuthShell
@@ -38,18 +40,28 @@ function LoginPage() {
     >
       <form
         className="space-y-5"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          if (!identifier.trim() || password.length < 6) {
-            toast.error("กรอกอีเมล/ชื่อผู้ใช้ และรหัสผ่านอย่างน้อย 6 ตัวอักษร");
+          if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(identifier.trim()) || password.length < 6) {
+            toast.error("กรอกอีเมลให้ถูกต้อง และรหัสผ่านอย่างน้อย 6 ตัวอักษร");
+            return;
+          }
+          setBusy(true);
+          const { error } = await supabase.auth.signInWithPassword({
+            email: identifier.trim(),
+            password,
+          });
+          setBusy(false);
+          if (error) {
+            toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
             return;
           }
           toast.success("เข้าสู่ระบบสำเร็จ");
-          navigate({ to: "/" });
+          navigate({ to: "/feed" });
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="identifier">อีเมลหรือชื่อผู้ใช้</Label>
+          <Label htmlFor="identifier">อีเมล</Label>
           <Input
             id="identifier"
             value={identifier}
@@ -71,12 +83,25 @@ function LoginPage() {
             className="h-12 rounded-xl"
           />
         </div>
-        <Button type="submit" className="h-12 w-full rounded-full text-base font-semibold">
-          เข้าสู่ระบบ
+        <Button
+          type="submit"
+          disabled={busy}
+          className="h-12 w-full rounded-full text-base font-semibold"
+        >
+          {busy ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
         </Button>
         <button
           type="button"
-          onClick={() => toast("ลิงก์รีเซ็ตรหัสผ่านถูกส่งไปที่อีเมลของคุณแล้ว")}
+          onClick={async () => {
+            if (!identifier.trim()) {
+              toast.error("กรอกอีเมลของคุณก่อน");
+              return;
+            }
+            await supabase.auth.resetPasswordForEmail(identifier.trim(), {
+              redirectTo: `${window.location.origin}/login`,
+            });
+            toast("ถ้ามีบัญชีนี้อยู่ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปให้แล้ว");
+          }}
           className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
         >
           ลืมรหัสผ่าน?

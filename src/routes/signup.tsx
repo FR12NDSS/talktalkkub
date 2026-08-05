@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { checkAvailability } from "@/lib/auth.functions";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -57,6 +59,7 @@ function SignupPage() {
   const [bio, setBio] = useState("");
   const [code, setCode] = useState("");
   const [agree, setAgree] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const validate = () => {
     switch (step) {
@@ -86,18 +89,63 @@ function SignupPage() {
     }
   };
 
-  const next = () => {
+  const next = async () => {
     const error = validate();
     if (error) {
       toast.error(error);
       return;
     }
-    if (step === STEPS.length - 1) {
-      toast.success("สร้างบัญชีสำเร็จ ยินดีต้อนรับสู่ Pulse!");
-      navigate({ to: "/" });
-      return;
+    setBusy(true);
+    try {
+      if (step === 1) {
+        const res = await checkAvailability({ data: { email: email.trim() } });
+        if (res.emailAvailable === false) {
+          toast.error("อีเมลนี้ถูกใช้งานแล้ว");
+          return;
+        }
+      }
+      if (step === 2) {
+        const res = await checkAvailability({ data: { username } });
+        if (res.usernameAvailable === false) {
+          toast.error("ชื่อผู้ใช้นี้ถูกใช้งานแล้ว");
+          return;
+        }
+      }
+      if (step === 4) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/feed`,
+            data: { username, display_name: name.trim(), bio, birthday, topics },
+          },
+        });
+        if (signUpError) {
+          toast.error(signUpError.message);
+          return;
+        }
+        toast.success(`ส่งรหัสยืนยัน 6 หลักไปที่ ${email.trim()} แล้ว`);
+      }
+      if (step === STEPS.length - 1) {
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          email: email.trim(),
+          token: code,
+          type: "signup",
+        });
+        if (otpError) {
+          toast.error("รหัสยืนยันไม่ถูกต้องหรือหมดอายุ");
+          return;
+        }
+        toast.success("สร้างบัญชีสำเร็จ ยินดีต้อนรับสู่ Pulse!");
+        navigate({ to: "/feed" });
+        return;
+      }
+      setStep((s) => s + 1);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง");
+    } finally {
+      setBusy(false);
     }
-    setStep((s) => s + 1);
   };
 
   const current = STEPS[step] ?? STEPS[0]!;
@@ -292,8 +340,12 @@ function SignupPage() {
               ย้อนกลับ
             </Button>
           )}
-          <Button type="submit" className="h-12 flex-1 rounded-full text-base font-semibold">
-            {step === STEPS.length - 1 ? "สร้างบัญชี" : "ถัดไป"}
+          <Button
+            type="submit"
+            disabled={busy}
+            className="h-12 flex-1 rounded-full text-base font-semibold"
+          >
+            {busy ? "กำลังดำเนินการ..." : step === STEPS.length - 1 ? "สร้างบัญชี" : "ถัดไป"}
           </Button>
         </div>
       </form>

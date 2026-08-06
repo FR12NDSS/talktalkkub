@@ -54,12 +54,23 @@ function SignupPage() {
   const [birthday, setBirthday] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [code, setCode] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const passwordRules = [
+    { label: "อย่างน้อย 8 ตัวอักษร", ok: password.length >= 8 },
+    { label: "มีตัวเลขอย่างน้อย 4 หลัก", ok: (password.match(/\d/g) ?? []).length >= 4 },
+    { label: "มีอักษรตัวใหญ่อย่างน้อย 1 ตัว", ok: /[A-Z]/.test(password) },
+    { label: "มีสัญลักษณ์พิเศษอย่างน้อย 1 ตัว", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passedRules = passwordRules.filter((r) => r.ok).length;
+  const passwordStrong = passedRules === passwordRules.length;
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
 
   const validate = () => {
     switch (step) {
@@ -69,7 +80,8 @@ function SignupPage() {
         return null;
       case 1:
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return "อีเมลไม่ถูกต้อง";
-        if (password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
+        if (!passwordStrong) return "รหัสผ่านยังไม่ผ่านเงื่อนไขความปลอดภัย";
+        if (!passwordsMatch) return "รหัสผ่านทั้งสองช่องไม่ตรงกัน";
         return null;
       case 2:
         if (!/^[a-zA-Z0-9_]{3,15}$/.test(username)) return "ชื่อผู้ใช้ 3–15 ตัว (a-z, 0-9, _)";

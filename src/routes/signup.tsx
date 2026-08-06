@@ -250,6 +250,59 @@ function SignupPage() {
                 className="h-12 rounded-xl"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                maxLength={72}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="กรอกรหัสผ่านอีกครั้ง"
+                className="h-12 rounded-xl"
+              />
+              {confirmPassword.length > 0 && (
+                <p
+                  className={`text-xs ${passwordsMatch ? "text-primary" : "text-destructive"}`}
+                >
+                  {passwordsMatch ? "✓ รหัสผ่านตรงกัน" : "✕ รหัสผ่านไม่ตรงกัน"}
+                </p>
+              )}
+            </div>
+            <div className="space-y-3 rounded-xl border border-border bg-secondary/40 p-4">
+              <div className="flex items-center gap-1.5">
+                {passwordRules.map((r, i) => (
+                  <div
+                    key={r.label}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      i < passedRules
+                        ? passwordStrong
+                          ? "bg-primary"
+                          : "bg-muted-foreground"
+                        : "bg-secondary"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs font-medium text-muted-foreground">
+                {passwordStrong
+                  ? "รหัสผ่านปลอดภัย ใช้งานได้"
+                  : `ความปลอดภัยรหัสผ่าน ${passedRules}/${passwordRules.length}`}
+              </p>
+              <ul className="space-y-1.5">
+                {passwordRules.map((r) => (
+                  <li
+                    key={r.label}
+                    className={`flex items-center gap-2 text-xs ${
+                      r.ok ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    <span aria-hidden="true">{r.ok ? "✓" : "○"}</span>
+                    {r.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </>
         )}
 

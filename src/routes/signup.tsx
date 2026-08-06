@@ -7,8 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { checkAvailability } from "@/lib/auth.functions";
+import {
+  mockEmailAvailable,
+  mockUsernameAvailable,
+  mockSignUp,
+  mockVerifyOtp,
+  DEMO_OTP,
+} from "@/lib/mock-db";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -110,42 +115,33 @@ function SignupPage() {
     setBusy(true);
     try {
       if (step === 1) {
-        const res = await checkAvailability({ data: { email: email.trim() } });
-        if (res.emailAvailable === false) {
+        const available = await mockEmailAvailable(email.trim());
+        if (!available) {
           toast.error("อีเมลนี้ถูกใช้งานแล้ว");
           return;
         }
       }
       if (step === 2) {
-        const res = await checkAvailability({ data: { username } });
-        if (res.usernameAvailable === false) {
+        const available = await mockUsernameAvailable(username);
+        if (!available) {
           toast.error("ชื่อผู้ใช้นี้ถูกใช้งานแล้ว");
           return;
         }
       }
       if (step === 4) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        await mockSignUp({
           email: email.trim(),
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/feed`,
-            data: { username, display_name: name.trim(), bio, birthday, topics },
-          },
+          username,
+          displayName: name.trim(),
+          bio,
         });
-        if (signUpError) {
-          toast.error(signUpError.message);
-          return;
-        }
-        toast.success(`ส่งรหัสยืนยัน 6 หลักไปที่ ${email.trim()} แล้ว`);
+        toast.success(`โหมดทดลอง: รหัสยืนยันของคุณคือ ${DEMO_OTP}`);
       }
       if (step === STEPS.length - 1) {
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          email: email.trim(),
-          token: code,
-          type: "signup",
-        });
+        const { error: otpError } = await mockVerifyOtp(email.trim(), code);
         if (otpError) {
-          toast.error("รหัสยืนยันไม่ถูกต้องหรือหมดอายุ");
+          toast.error(otpError);
           return;
         }
         toast.success("สร้างบัญชีสำเร็จ ยินดีต้อนรับสู่ Pulse!");
@@ -380,20 +376,13 @@ function SignupPage() {
                 className="h-14 rounded-xl text-center text-2xl tracking-[0.5em]"
               />
               <p className="text-xs text-muted-foreground">
-                ส่งรหัสไปที่ {email || "อีเมลของคุณ"} แล้ว
+                โหมดทดลอง: ใช้รหัส {DEMO_OTP} เพื่อยืนยัน ({email || "อีเมลของคุณ"})
               </p>
               <button
                 type="button"
                 className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                 disabled={busy}
-                onClick={async () => {
-                  const { error } = await supabase.auth.resend({
-                    type: "signup",
-                    email: email.trim(),
-                  });
-                  if (error) toast.error(error.message);
-                  else toast.success("ส่งรหัส 6 หลักใหม่แล้ว");
-                }}
+                onClick={() => toast.success(`โหมดทดลอง: รหัสยืนยันคือ ${DEMO_OTP}`)}
               >
                 ส่งรหัสอีกครั้ง
               </button>

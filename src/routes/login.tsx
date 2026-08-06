@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { mockSignIn, DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/mock-db";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +38,23 @@ function LoginPage() {
         </span>
       }
     >
+      <div className="mb-5 rounded-xl border border-border bg-secondary/40 p-4 text-sm">
+        <p className="font-semibold text-foreground">โหมดทดลอง (ข้อมูลจำลอง)</p>
+        <p className="mt-1 text-muted-foreground">
+          บัญชีเดโม่: {DEMO_EMAIL} / {DEMO_PASSWORD}
+        </p>
+        <button
+          type="button"
+          className="mt-2 font-medium text-primary hover:underline"
+          onClick={() => {
+            setIdentifier(DEMO_EMAIL);
+            setPassword(DEMO_PASSWORD);
+          }}
+        >
+          กรอกให้อัตโนมัติ
+        </button>
+      </div>
+
       <form
         className="space-y-5"
         onSubmit={async (e) => {
@@ -47,13 +64,10 @@ function LoginPage() {
             return;
           }
           setBusy(true);
-          const { error } = await supabase.auth.signInWithPassword({
-            email: identifier.trim(),
-            password,
-          });
+          const { error } = await mockSignIn(identifier.trim(), password);
           setBusy(false);
           if (error) {
-            toast.error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+            toast.error(error);
             return;
           }
           toast.success("เข้าสู่ระบบสำเร็จ");
@@ -92,15 +106,12 @@ function LoginPage() {
         </Button>
         <button
           type="button"
-          onClick={async () => {
+          onClick={() => {
             if (!identifier.trim()) {
               toast.error("กรอกอีเมลของคุณก่อน");
               return;
             }
-            await supabase.auth.resetPasswordForEmail(identifier.trim(), {
-              redirectTo: `${window.location.origin}/login`,
-            });
-            toast("ถ้ามีบัญชีนี้อยู่ เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปให้แล้ว");
+            toast("โหมดทดลอง: ยังไม่รองรับการรีเซ็ตรหัสผ่านจริง");
           }}
           className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
         >

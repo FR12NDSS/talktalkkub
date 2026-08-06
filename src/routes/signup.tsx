@@ -54,12 +54,23 @@ function SignupPage() {
   const [birthday, setBirthday] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
   const [topics, setTopics] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [code, setCode] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const passwordRules = [
+    { label: "อย่างน้อย 8 ตัวอักษร", ok: password.length >= 8 },
+    { label: "มีตัวเลขอย่างน้อย 4 หลัก", ok: (password.match(/\d/g) ?? []).length >= 4 },
+    { label: "มีอักษรตัวใหญ่อย่างน้อย 1 ตัว", ok: /[A-Z]/.test(password) },
+    { label: "มีสัญลักษณ์พิเศษอย่างน้อย 1 ตัว", ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const passedRules = passwordRules.filter((r) => r.ok).length;
+  const passwordStrong = passedRules === passwordRules.length;
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
 
   const validate = () => {
     switch (step) {
@@ -69,7 +80,8 @@ function SignupPage() {
         return null;
       case 1:
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return "อีเมลไม่ถูกต้อง";
-        if (password.length < 8) return "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร";
+        if (!passwordStrong) return "รหัสผ่านยังไม่ผ่านเงื่อนไขความปลอดภัย";
+        if (!passwordsMatch) return "รหัสผ่านทั้งสองช่องไม่ตรงกัน";
         return null;
       case 2:
         if (!/^[a-zA-Z0-9_]{3,15}$/.test(username)) return "ชื่อผู้ใช้ 3–15 ตัว (a-z, 0-9, _)";
@@ -238,6 +250,59 @@ function SignupPage() {
                 className="h-12 rounded-xl"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">ยืนยันรหัสผ่าน</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                maxLength={72}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="กรอกรหัสผ่านอีกครั้ง"
+                className="h-12 rounded-xl"
+              />
+              {confirmPassword.length > 0 && (
+                <p
+                  className={`text-xs ${passwordsMatch ? "text-primary" : "text-destructive"}`}
+                >
+                  {passwordsMatch ? "✓ รหัสผ่านตรงกัน" : "✕ รหัสผ่านไม่ตรงกัน"}
+                </p>
+              )}
+            </div>
+            <div className="space-y-3 rounded-xl border border-border bg-secondary/40 p-4">
+              <div className="flex items-center gap-1.5">
+                {passwordRules.map((r, i) => (
+                  <div
+                    key={r.label}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      i < passedRules
+                        ? passwordStrong
+                          ? "bg-primary"
+                          : "bg-muted-foreground"
+                        : "bg-secondary"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs font-medium text-muted-foreground">
+                {passwordStrong
+                  ? "รหัสผ่านปลอดภัย ใช้งานได้"
+                  : `ความปลอดภัยรหัสผ่าน ${passedRules}/${passwordRules.length}`}
+              </p>
+              <ul className="space-y-1.5">
+                {passwordRules.map((r) => (
+                  <li
+                    key={r.label}
+                    className={`flex items-center gap-2 text-xs ${
+                      r.ok ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    <span aria-hidden="true">{r.ok ? "✓" : "○"}</span>
+                    {r.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </>
         )}
 
@@ -317,6 +382,21 @@ function SignupPage() {
               <p className="text-xs text-muted-foreground">
                 ส่งรหัสไปที่ {email || "อีเมลของคุณ"} แล้ว
               </p>
+              <button
+                type="button"
+                className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                disabled={busy}
+                onClick={async () => {
+                  const { error } = await supabase.auth.resend({
+                    type: "signup",
+                    email: email.trim(),
+                  });
+                  if (error) toast.error(error.message);
+                  else toast.success("ส่งรหัส 6 หลักใหม่แล้ว");
+                }}
+              >
+                ส่งรหัสอีกครั้ง
+              </button>
             </div>
             <label className="flex items-start gap-3 text-sm text-muted-foreground">
               <Checkbox

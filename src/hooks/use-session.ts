@@ -1,24 +1,27 @@
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { getDb } from "@/lib/mock-db";
+
+export type MockUser = { id: string; email: string };
 
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<MockUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
+    const read = () => {
+      const db = getDb();
+      const account = db.accounts.find((a) => a.id === db.sessionUserId);
+      setUser(account ? { id: account.id, email: account.email } : null);
       setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => subscription.unsubscribe();
+    };
+    read();
+    window.addEventListener("mock-db-change", read);
+    window.addEventListener("storage", read);
+    return () => {
+      window.removeEventListener("mock-db-change", read);
+      window.removeEventListener("storage", read);
+    };
   }, []);
 
-  return { session, user: session?.user ?? null, loading };
+  return { user, session: user ? { user } : null, loading };
 }

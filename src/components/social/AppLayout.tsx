@@ -4,7 +4,7 @@ import { Home, LogOut, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { mockSignOut } from "@/lib/mock-db";
 
 export function Avatar({ seed, size = "h-11 w-11" }: { seed: string; size?: string }) {
   return (
@@ -34,7 +34,7 @@ export function AppLayout({
   const signOut = async () => {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await mockSignOut();
     navigate({ to: "/", replace: true });
   };
 

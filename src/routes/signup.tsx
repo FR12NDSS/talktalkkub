@@ -382,6 +382,21 @@ function SignupPage() {
               <p className="text-xs text-muted-foreground">
                 ส่งรหัสไปที่ {email || "อีเมลของคุณ"} แล้ว
               </p>
+              <button
+                type="button"
+                className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                disabled={busy}
+                onClick={async () => {
+                  const { error } = await supabase.auth.resend({
+                    type: "signup",
+                    email: email.trim(),
+                  });
+                  if (error) toast.error(error.message);
+                  else toast.success("ส่งรหัส 6 หลักใหม่แล้ว");
+                }}
+              >
+                ส่งรหัสอีกครั้ง
+              </button>
             </div>
             <label className="flex items-start gap-3 text-sm text-muted-foreground">
               <Checkbox

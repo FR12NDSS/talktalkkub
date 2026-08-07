@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedPostPostIdRouteImport } from './routes/_authenticated/post.$postId'
 import { Route as AuthenticatedUUsernameRouteImport } from './routes/_authenticated/u.$username'
@@ -42,6 +43,12 @@ const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/post/$postId': typeof AuthenticatedPostPostIdRoute
   '/u/$username': typeof AuthenticatedUUsernameRoute
@@ -72,6 +80,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/feed': typeof AuthenticatedFeedRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/search': typeof AuthenticatedSearchRoute
   '/post/$postId': typeof AuthenticatedPostPostIdRoute
   '/u/$username': typeof AuthenticatedUUsernameRoute
@@ -83,6 +92,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/post/$postId': typeof AuthenticatedPostPostIdRoute
   '/_authenticated/u/$username': typeof AuthenticatedUUsernameRoute
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/feed'
+    | '/notifications'
     | '/search'
     | '/post/$postId'
     | '/u/$username'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/feed'
+    | '/notifications'
     | '/search'
     | '/post/$postId'
     | '/u/$username'
@@ -113,6 +125,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_authenticated/feed'
+    | '/_authenticated/notifications'
     | '/_authenticated/search'
     | '/_authenticated/post/$postId'
     | '/_authenticated/u/$username'
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/search': {
       id: '/_authenticated/search'
       path: '/search'
@@ -188,6 +208,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedPostPostIdRoute: typeof AuthenticatedPostPostIdRoute
   AuthenticatedUUsernameRoute: typeof AuthenticatedUUsernameRoute
@@ -195,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedPostPostIdRoute: AuthenticatedPostPostIdRoute,
   AuthenticatedUUsernameRoute: AuthenticatedUUsernameRoute,

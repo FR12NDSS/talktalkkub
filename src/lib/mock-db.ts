@@ -170,6 +170,18 @@ function seed(): MockDb {
       { follower_id: "u-demo", following_id: "u-nara" },
       { follower_id: "u-ploy", following_id: "u-nara" },
     ],
+    messages: [
+      { id: "m1", from_id: "u-nara", to_id: "u-demo", text: "สวัสดีครับ ยินดีที่ได้รู้จัก!", created_at: ago(180), read: false },
+      { id: "m2", from_id: "u-demo", to_id: "u-nara", text: "สวัสดีครับ ผมเพิ่งสมัครเลย", created_at: ago(170), read: true },
+      { id: "m3", from_id: "u-nara", to_id: "u-demo", text: "ลองโพสต์แรกดูสิ สนุกมาก", created_at: ago(30), read: false },
+      { id: "m4", from_id: "u-ploy", to_id: "u-demo", text: "แนะนำร้านกาแฟแถวนี้หน่อยได้ไหม ☕️", created_at: ago(90), read: false },
+    ],
+    notifications: [
+      { id: "n1", user_id: "u-demo", actor_id: "u-ploy", type: "like", post_id: "p4", created_at: ago(20), read: false },
+      { id: "n2", user_id: "u-demo", actor_id: "u-nara", type: "follow", post_id: null, created_at: ago(120), read: false },
+      { id: "n3", user_id: "u-demo", actor_id: "u-thana", type: "reply", post_id: "p4", created_at: ago(240), read: true },
+    ],
+    settings: { ...DEFAULT_SETTINGS },
     sessionUserId: null,
   };
 }
@@ -180,7 +192,13 @@ export function getDb(): MockDb {
   if (typeof window === "undefined") return memory ?? (memory = seed());
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as MockDb;
+    if (raw) {
+      const parsed = JSON.parse(raw) as MockDb;
+      parsed.messages ??= [];
+      parsed.notifications ??= [];
+      parsed.settings = { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) };
+      return parsed;
+    }
   } catch {
     /* ignore */
   }

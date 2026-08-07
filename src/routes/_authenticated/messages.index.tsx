@@ -5,7 +5,7 @@ import { AppLayout, Avatar } from "@/components/social/AppLayout";
 import { socialQuery, conversationsOf, timeAgo } from "@/lib/social";
 import { useSession } from "@/hooks/use-session";
 
-export const Route = createFileRoute("/_authenticated/messages")({
+export const Route = createFileRoute("/_authenticated/messages/")({
   head: () => ({
     meta: [
       { title: "ข้อความ — Pulse" },

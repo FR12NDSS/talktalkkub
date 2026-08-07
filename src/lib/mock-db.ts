@@ -20,16 +20,58 @@ export type MockPost = {
 
 export type MockAccount = { id: string; email: string; password: string; verified: boolean };
 
+export type MockMessage = {
+  id: string;
+  from_id: string;
+  to_id: string;
+  text: string;
+  created_at: string;
+  read: boolean;
+};
+
+export type MockNotification = {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  type: "like" | "follow" | "reply" | "repost";
+  post_id: string | null;
+  created_at: string;
+  read: boolean;
+};
+
+export type MockSettings = {
+  theme: "dark" | "light";
+  language: "th" | "en";
+  privateAccount: boolean;
+  notifyLikes: boolean;
+  notifyFollows: boolean;
+  notifyReplies: boolean;
+  notifyMessages: boolean;
+};
+
+export const DEFAULT_SETTINGS: MockSettings = {
+  theme: "dark",
+  language: "th",
+  privateAccount: false,
+  notifyLikes: true,
+  notifyFollows: true,
+  notifyReplies: true,
+  notifyMessages: true,
+};
+
 export type MockDb = {
   accounts: MockAccount[];
   profiles: MockProfile[];
   posts: MockPost[];
   likes: { post_id: string; user_id: string }[];
   follows: { follower_id: string; following_id: string }[];
+  messages: MockMessage[];
+  notifications: MockNotification[];
+  settings: MockSettings;
   sessionUserId: string | null;
 };
 
-const KEY = "pulse-mock-db-v1";
+const KEY = "pulse-mock-db-v2";
 export const DEMO_EMAIL = "demo@pulse.app";
 export const DEMO_PASSWORD = "Demo@1234";
 export const DEMO_OTP = "123456";

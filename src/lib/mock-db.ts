@@ -20,16 +20,58 @@ export type MockPost = {
 
 export type MockAccount = { id: string; email: string; password: string; verified: boolean };
 
+export type MockMessage = {
+  id: string;
+  from_id: string;
+  to_id: string;
+  text: string;
+  created_at: string;
+  read: boolean;
+};
+
+export type MockNotification = {
+  id: string;
+  user_id: string;
+  actor_id: string;
+  type: "like" | "follow" | "reply" | "repost";
+  post_id: string | null;
+  created_at: string;
+  read: boolean;
+};
+
+export type MockSettings = {
+  theme: "dark" | "light";
+  language: "th" | "en";
+  privateAccount: boolean;
+  notifyLikes: boolean;
+  notifyFollows: boolean;
+  notifyReplies: boolean;
+  notifyMessages: boolean;
+};
+
+export const DEFAULT_SETTINGS: MockSettings = {
+  theme: "dark",
+  language: "th",
+  privateAccount: false,
+  notifyLikes: true,
+  notifyFollows: true,
+  notifyReplies: true,
+  notifyMessages: true,
+};
+
 export type MockDb = {
   accounts: MockAccount[];
   profiles: MockProfile[];
   posts: MockPost[];
   likes: { post_id: string; user_id: string }[];
   follows: { follower_id: string; following_id: string }[];
+  messages: MockMessage[];
+  notifications: MockNotification[];
+  settings: MockSettings;
   sessionUserId: string | null;
 };
 
-const KEY = "pulse-mock-db-v1";
+const KEY = "pulse-mock-db-v2";
 export const DEMO_EMAIL = "demo@pulse.app";
 export const DEMO_PASSWORD = "Demo@1234";
 export const DEMO_OTP = "123456";
@@ -128,6 +170,18 @@ function seed(): MockDb {
       { follower_id: "u-demo", following_id: "u-nara" },
       { follower_id: "u-ploy", following_id: "u-nara" },
     ],
+    messages: [
+      { id: "m1", from_id: "u-nara", to_id: "u-demo", text: "สวัสดีครับ ยินดีที่ได้รู้จัก!", created_at: ago(180), read: false },
+      { id: "m2", from_id: "u-demo", to_id: "u-nara", text: "สวัสดีครับ ผมเพิ่งสมัครเลย", created_at: ago(170), read: true },
+      { id: "m3", from_id: "u-nara", to_id: "u-demo", text: "ลองโพสต์แรกดูสิ สนุกมาก", created_at: ago(30), read: false },
+      { id: "m4", from_id: "u-ploy", to_id: "u-demo", text: "แนะนำร้านกาแฟแถวนี้หน่อยได้ไหม ☕️", created_at: ago(90), read: false },
+    ],
+    notifications: [
+      { id: "n1", user_id: "u-demo", actor_id: "u-ploy", type: "like", post_id: "p4", created_at: ago(20), read: false },
+      { id: "n2", user_id: "u-demo", actor_id: "u-nara", type: "follow", post_id: null, created_at: ago(120), read: false },
+      { id: "n3", user_id: "u-demo", actor_id: "u-thana", type: "reply", post_id: "p4", created_at: ago(240), read: true },
+    ],
+    settings: { ...DEFAULT_SETTINGS },
     sessionUserId: null,
   };
 }
@@ -138,7 +192,13 @@ export function getDb(): MockDb {
   if (typeof window === "undefined") return memory ?? (memory = seed());
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as MockDb;
+    if (raw) {
+      const parsed = JSON.parse(raw) as MockDb;
+      parsed.messages ??= [];
+      parsed.notifications ??= [];
+      parsed.settings = { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}) };
+      return parsed;
+    }
   } catch {
     /* ignore */
   }

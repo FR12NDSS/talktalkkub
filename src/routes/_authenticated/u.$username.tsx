@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays } from "lucide-react";
 import { toast } from "sonner";
@@ -69,7 +69,17 @@ function ProfilePage() {
       <section className="border-b border-border p-4">
         <div className="flex items-start justify-between gap-4">
           <Avatar seed={profile.display_name || profile.username} size="h-20 w-20" />
-          {!isMe && (
+          {isMe ? (
+            <Button asChild variant="secondary" className="rounded-full px-6 font-semibold">
+              <Link to="/settings">แก้ไขโปรไฟล์</Link>
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+            <Button asChild variant="secondary" className="rounded-full px-4 font-semibold">
+              <Link to="/messages/$username" params={{ username: profile.username }}>
+                ส่งข้อความ
+              </Link>
+            </Button>
             <Button
               onClick={handleFollow}
               variant={isFollowing ? "secondary" : "default"}
@@ -77,6 +87,7 @@ function ProfilePage() {
             >
               {isFollowing ? "กำลังติดตาม" : "ติดตาม"}
             </Button>
+            </div>
           )}
         </div>
         <h2 className="mt-4 text-2xl font-bold text-foreground">

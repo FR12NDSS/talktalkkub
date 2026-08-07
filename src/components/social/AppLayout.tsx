@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, Home, LogOut, Mail, Menu, Search, Settings, User } from "lucide-react";
@@ -105,6 +105,11 @@ export function AppLayout({
 
   const unreadMsg = data && user ? unreadMessageCount(data, user.id) : 0;
   const unreadNotif = data && user ? unreadNotificationCount(data, user.id) : 0;
+  const theme = data?.settings.theme;
+
+  useEffect(() => {
+    if (theme) document.documentElement.classList.toggle("light", theme === "light");
+  }, [theme]);
 
   const signOut = async () => {
     await queryClient.cancelQueries();

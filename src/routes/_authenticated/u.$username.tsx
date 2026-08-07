@@ -74,6 +74,12 @@ function ProfilePage() {
               <Link to="/settings">แก้ไขโปรไฟล์</Link>
             </Button>
           ) : (
+            <div className="flex gap-2">
+            <Button asChild variant="secondary" className="rounded-full px-4 font-semibold">
+              <Link to="/messages/$username" params={{ username: profile.username }}>
+                ส่งข้อความ
+              </Link>
+            </Button>
             <Button
               onClick={handleFollow}
               variant={isFollowing ? "secondary" : "default"}
@@ -81,6 +87,7 @@ function ProfilePage() {
             >
               {isFollowing ? "กำลังติดตาม" : "ติดตาม"}
             </Button>
+            </div>
           )}
         </div>
         <h2 className="mt-4 text-2xl font-bold text-foreground">
